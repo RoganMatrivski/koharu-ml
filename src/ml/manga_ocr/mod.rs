@@ -32,14 +32,19 @@ pub struct MangaOcr {
 impl MangaOcr {
     pub async fn load(cpu: bool) -> Result<Self> {
         let device = device(cpu)?;
+        let api = hf_hub::api::tokio::ApiBuilder::new()
+            .with_progress(false)
+            .build()?;
         
         let config_path = crate::ml::loading::hf_download(HF_REPO, "config.json").await?;
-        let preprocessor_path = hf
-            .huggingface_model(HF_REPO, "preprocessor_config.json")
+        let preprocessor_path = api
+            .model(HF_REPO.to_string())
+            .get("preprocessor_config.json")
             .await?;
         let vocab_path = crate::ml::loading::hf_download(HF_REPO, "vocab.txt").await?;
-        let special_tokens_path = hf
-            .huggingface_model(HF_REPO, "special_tokens_map.json")
+        let special_tokens_path = api
+            .model(HF_REPO.to_string())
+            .get("special_tokens_map.json")
             .await?;
 
         let config: VisionEncoderDecoderConfig =

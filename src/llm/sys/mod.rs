@@ -29,12 +29,6 @@ mod generated {
         use super::types::*;
         include!(concat!(env!("OUT_DIR"), "/ggml_base_loader.rs"));
     }
-
-    #[allow(warnings)]
-    pub mod mtmd {
-        use super::types::*;
-        include!(concat!(env!("OUT_DIR"), "/mtmd_loader.rs"));
-    }
 }
 
 pub use generated::types::*;
@@ -44,21 +38,19 @@ struct LoadedLibraries {
     llama: generated::llama::llama,
     ggml: generated::ggml::ggml,
     ggml_base: generated::ggml_base::ggml_base,
-    mtmd: generated::mtmd::mtmd,
 }
 
 #[cfg(target_os = "windows")]
-const LIB_NAMES: [&str; 4] = ["ggml-base.dll", "ggml.dll", "llama.dll", "mtmd.dll"];
+const LIB_NAMES: [&str; 3] = ["ggml-base.dll", "ggml.dll", "llama.dll"];
 
 #[cfg(target_os = "linux")]
-const LIB_NAMES: [&str; 4] = ["libggml-base.so", "libggml.so", "libllama.so", "libmtmd.so"];
+const LIB_NAMES: [&str; 3] = ["libggml-base.so", "libggml.so", "libllama.so"];
 
 #[cfg(target_os = "macos")]
-const LIB_NAMES: [&str; 4] = [
+const LIB_NAMES: [&str; 3] = [
     "libggml-base.dylib",
     "libggml.dylib",
     "libllama.dylib",
-    "libmtmd.dylib",
 ];
 
 static LIBRARIES: OnceLock<LoadedLibraries> = OnceLock::new();
@@ -97,7 +89,7 @@ pub fn initialize(runtime_dir: &Path) -> Result<()> {
 }
 
 fn load_libraries(dir: &Path) -> Result<LoadedLibraries> {
-    let [ggml_base_name, ggml_name, llama_name, mtmd_name] = LIB_NAMES;
+    let [ggml_base_name, ggml_name, llama_name] = LIB_NAMES;
 
     let ggml_base = load_and_bind(&dir.join(ggml_base_name), ggml_base_name, |lib| unsafe {
         generated::ggml_base::ggml_base::from_library(lib)
@@ -108,16 +100,12 @@ fn load_libraries(dir: &Path) -> Result<LoadedLibraries> {
     let llama = load_and_bind(&dir.join(llama_name), llama_name, |lib| unsafe {
         generated::llama::llama::from_library(lib)
     })?;
-    let mtmd = load_and_bind(&dir.join(mtmd_name), mtmd_name, |lib| unsafe {
-        generated::mtmd::mtmd::from_library(lib)
-    })?;
 
     Ok(LoadedLibraries {
         path: dir.to_path_buf(),
         llama,
         ggml,
         ggml_base,
-        mtmd,
     })
 }
 
@@ -168,10 +156,6 @@ fn ggml_lib() -> &'static generated::ggml::ggml {
 
 fn ggml_base_lib() -> &'static generated::ggml_base::ggml_base {
     &libraries().ggml_base
-}
-
-fn mtmd_lib() -> &'static generated::mtmd::mtmd {
-    &libraries().mtmd
 }
 
 #[allow(warnings)]

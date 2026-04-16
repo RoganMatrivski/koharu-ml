@@ -66,5 +66,12 @@ opt-level = 3
 [profile.dev.package.imageproc]
 opt-level = 3
 
-[profile.dev.package.backtrace]
-opt-level = 3
+[build-dependencies]
+anyhow = "1.0"
+bindgen = "0.71"
+flate2 = "1.0"
+proc-macro2 = "1.0"
+quote = "1.0"
+reqwest = { version = "0.13", features = ["blocking"] }
+syn = { version = "2.0", features = ["full"] }
+tar = "0.4"
