@@ -65,6 +65,39 @@ pub async fn list_models(
     Ok(ids)
 }
 
+impl OpenAiCompatibleProvider {
+    pub async fn multimodal(
+        &self,
+        source: &str,
+        target_language: Language,
+        model: &str,
+        custom_system_prompt: Option<&str>,
+        image_base64: Option<String>,
+    ) -> anyhow::Result<String> {
+        let prompt = resolve_system_prompt(custom_system_prompt, target_language);
+        send_chat_completion(
+            Arc::clone(&self.http_client),
+            ChatCompletionsRequest {
+                provider: "openai-compatible",
+                endpoint: format!("{}/chat/completions", normalized_base_url(&self.base_url)?),
+                auth: self
+                    .api_key
+                    .as_deref()
+                    .filter(|value| !value.trim().is_empty())
+                    .map(|key| ChatCompletionsAuth::Bearer(key.to_string()))
+                    .unwrap_or(ChatCompletionsAuth::None),
+                model: model.to_string(),
+                system_prompt: prompt,
+                user_prompt: source.to_string(),
+                temperature: self.temperature,
+                max_tokens: self.max_tokens,
+                image_base64,
+            },
+        )
+        .await
+    }
+}
+
 impl AnyProvider for OpenAiCompatibleProvider {
     fn translate<'a>(
         &'a self,
@@ -73,28 +106,7 @@ impl AnyProvider for OpenAiCompatibleProvider {
         model: &'a str,
         custom_system_prompt: Option<&'a str>,
     ) -> Pin<Box<dyn Future<Output = anyhow::Result<String>> + Send + 'a>> {
-        Box::pin(async move {
-            let prompt = resolve_system_prompt(custom_system_prompt, target_language);
-            send_chat_completion(
-                Arc::clone(&self.http_client),
-                ChatCompletionsRequest {
-                    provider: "openai-compatible",
-                    endpoint: format!("{}/chat/completions", normalized_base_url(&self.base_url)?),
-                    auth: self
-                        .api_key
-                        .as_deref()
-                        .filter(|value| !value.trim().is_empty())
-                        .map(|key| ChatCompletionsAuth::Bearer(key.to_string()))
-                        .unwrap_or(ChatCompletionsAuth::None),
-                    model: model.to_string(),
-                    system_prompt: prompt,
-                    user_prompt: source.to_string(),
-                    temperature: self.temperature,
-                    max_tokens: self.max_tokens,
-                },
-            )
-            .await
-        })
+        Box::pin(self.multimodal(source, target_language, model, custom_system_prompt, None))
     }
 }
 

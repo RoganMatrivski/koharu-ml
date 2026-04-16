@@ -1,38 +1,337 @@
-mod jinja;
-pub mod language;
-mod model;
-pub mod paddleocr_vl;
-pub mod prompt;
+pub mod model;
 pub mod providers;
-pub mod safe;
-pub mod sys;
 
 use std::path::PathBuf;
+use std::str::FromStr;
+use strum::{Display, EnumIter, EnumProperty, EnumString, IntoEnumIterator};
 
-
-use strum::{EnumProperty, IntoEnumIterator};
-
-pub use language::{Language, language_from_tag, supported_locales};
 pub use model::{GenerateOptions, Llm};
-pub use prompt::{ChatMessage, ChatRole};
 
-/// Suppress all llama.cpp / ggml / mtmd / clip native log output.
-/// Must be called after `LlamaBackend::init()`.
-pub fn suppress_native_logs() {
-    unsafe extern "C" fn void_log(
-        _: sys::ggml_log_level,
-        _: *const std::os::raw::c_char,
-        _: *mut std::os::raw::c_void,
-    ) {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Display, EnumString, EnumIter, EnumProperty)]
+pub enum Language {
+    #[strum(
+        to_string = "Simplified Chinese",
+        serialize = "zh-CN",
+        serialize = "zh",
+        serialize = "zh-Hans",
+        props(tag = "zh-CN")
+    )]
+    ChineseSimplified,
+    #[strum(
+        to_string = "English",
+        serialize = "en-US",
+        serialize = "en",
+        props(tag = "en-US")
+    )]
+    English,
+    #[strum(
+        to_string = "French",
+        serialize = "fr-FR",
+        serialize = "fr",
+        props(tag = "fr-FR")
+    )]
+    French,
+    #[strum(
+        to_string = "Portuguese",
+        serialize = "pt-PT",
+        serialize = "pt",
+        props(tag = "pt-PT")
+    )]
+    Portuguese,
+    #[strum(
+        to_string = "Brazilian Portuguese",
+        serialize = "pt-BR",
+        props(tag = "pt-BR")
+    )]
+    BrazilianPortuguese,
+    #[strum(
+        to_string = "Spanish",
+        serialize = "es-ES",
+        serialize = "es",
+        props(tag = "es-ES")
+    )]
+    Spanish,
+    #[strum(
+        to_string = "Japanese",
+        serialize = "ja-JP",
+        serialize = "ja",
+        props(tag = "ja-JP")
+    )]
+    Japanese,
+    #[strum(
+        to_string = "Turkish",
+        serialize = "tr-TR",
+        serialize = "tr",
+        props(tag = "tr-TR")
+    )]
+    Turkish,
+    #[strum(
+        to_string = "Russian",
+        serialize = "ru-RU",
+        serialize = "ru",
+        props(tag = "ru-RU")
+    )]
+    Russian,
+    #[strum(
+        to_string = "Arabic",
+        serialize = "ar-SA",
+        serialize = "ar",
+        props(tag = "ar-SA")
+    )]
+    Arabic,
+    #[strum(
+        to_string = "Korean",
+        serialize = "ko-KR",
+        serialize = "ko",
+        props(tag = "ko-KR")
+    )]
+    Korean,
+    #[strum(
+        to_string = "Thai",
+        serialize = "th-TH",
+        serialize = "th",
+        props(tag = "th-TH")
+    )]
+    Thai,
+    #[strum(
+        to_string = "Italian",
+        serialize = "it-IT",
+        serialize = "it",
+        props(tag = "it-IT")
+    )]
+    Italian,
+    #[strum(
+        to_string = "German",
+        serialize = "de-DE",
+        serialize = "de",
+        props(tag = "de-DE")
+    )]
+    German,
+    #[strum(
+        to_string = "Vietnamese",
+        serialize = "vi-VN",
+        serialize = "vi",
+        props(tag = "vi-VN")
+    )]
+    Vietnamese,
+    #[strum(
+        to_string = "Malay",
+        serialize = "ms-MY",
+        serialize = "ms",
+        props(tag = "ms-MY")
+    )]
+    Malay,
+    #[strum(
+        to_string = "Indonesian",
+        serialize = "id-ID",
+        serialize = "id",
+        props(tag = "id-ID")
+    )]
+    Indonesian,
+    #[strum(
+        to_string = "Filipino",
+        serialize = "fil-PH",
+        serialize = "fil",
+        serialize = "tl",
+        props(tag = "fil-PH")
+    )]
+    Filipino,
+    #[strum(
+        to_string = "Hindi",
+        serialize = "hi-IN",
+        serialize = "hi",
+        props(tag = "hi-IN")
+    )]
+    Hindi,
+    #[strum(
+        to_string = "Traditional Chinese",
+        serialize = "zh-TW",
+        serialize = "zh-Hant",
+        props(tag = "zh-TW")
+    )]
+    ChineseTraditional,
+    #[strum(
+        to_string = "Polish",
+        serialize = "pl-PL",
+        serialize = "pl",
+        props(tag = "pl-PL")
+    )]
+    Polish,
+    #[strum(
+        to_string = "Czech",
+        serialize = "cs-CZ",
+        serialize = "cs",
+        props(tag = "cs-CZ")
+    )]
+    Czech,
+    #[strum(
+        to_string = "Dutch",
+        serialize = "nl-NL",
+        serialize = "nl",
+        props(tag = "nl-NL")
+    )]
+    Dutch,
+    #[strum(
+        to_string = "Khmer",
+        serialize = "km-KH",
+        serialize = "km",
+        props(tag = "km-KH")
+    )]
+    Khmer,
+    #[strum(
+        to_string = "Burmese",
+        serialize = "my-MM",
+        serialize = "my",
+        props(tag = "my-MM")
+    )]
+    Burmese,
+    #[strum(
+        to_string = "Persian",
+        serialize = "fa-IR",
+        serialize = "fa",
+        props(tag = "fa-IR")
+    )]
+    Persian,
+    #[strum(
+        to_string = "Gujarati",
+        serialize = "gu-IN",
+        serialize = "gu",
+        props(tag = "gu-IN")
+    )]
+    Gujarati,
+    #[strum(
+        to_string = "Urdu",
+        serialize = "ur-PK",
+        serialize = "ur",
+        props(tag = "ur-PK")
+    )]
+    Urdu,
+    #[strum(
+        to_string = "Telugu",
+        serialize = "te-IN",
+        serialize = "te",
+        props(tag = "te-IN")
+    )]
+    Telugu,
+    #[strum(
+        to_string = "Marathi",
+        serialize = "mr-IN",
+        serialize = "mr",
+        props(tag = "mr-IN")
+    )]
+    Marathi,
+    #[strum(
+        to_string = "Hebrew",
+        serialize = "he-IL",
+        serialize = "he",
+        props(tag = "he-IL")
+    )]
+    Hebrew,
+    #[strum(
+        to_string = "Bengali",
+        serialize = "bn-BD",
+        serialize = "bn",
+        props(tag = "bn-BD")
+    )]
+    Bengali,
+    #[strum(
+        to_string = "Bulgarian",
+        serialize = "bg-BG",
+        serialize = "bg",
+        props(tag = "bg-BG")
+    )]
+    Bulgarian,
+    #[strum(
+        to_string = "Tamil",
+        serialize = "ta-IN",
+        serialize = "ta",
+        props(tag = "ta-IN")
+    )]
+    Tamil,
+    #[strum(
+        to_string = "Ukrainian",
+        serialize = "uk-UA",
+        serialize = "uk",
+        props(tag = "uk-UA")
+    )]
+    Ukrainian,
+    #[strum(
+        to_string = "Tibetan",
+        serialize = "bo-CN",
+        serialize = "bo",
+        props(tag = "bo-CN")
+    )]
+    Tibetan,
+    #[strum(
+        to_string = "Kazakh",
+        serialize = "kk-KZ",
+        serialize = "kk",
+        props(tag = "kk-KZ")
+    )]
+    Kazakh,
+    #[strum(
+        to_string = "Mongolian",
+        serialize = "mn-MN",
+        serialize = "mn",
+        props(tag = "mn-MN")
+    )]
+    Mongolian,
+    #[strum(
+        to_string = "Uyghur",
+        serialize = "ug-CN",
+        serialize = "ug",
+        props(tag = "ug-CN")
+    )]
+    Uyghur,
+    #[strum(
+        to_string = "Cantonese",
+        serialize = "yue-HK",
+        serialize = "yue",
+        props(tag = "yue-HK")
+    )]
+    Cantonese,
+}
+
+impl Language {
+    pub fn tag(self) -> &'static str {
+        self.get_str("tag").expect("language tag property")
     }
-    unsafe {
-        // Suppress llama.cpp + ggml logs
-        sys::llama_log_set(Some(void_log), std::ptr::null_mut());
-        // Suppress mtmd / clip logs (separate logger)
-        sys::mtmd_log_set(Some(void_log), std::ptr::null_mut());
-        // Suppress mtmd-helper logs (yet another separate logger)
-        sys::mtmd_helper_log_set(Some(void_log), std::ptr::null_mut());
+
+    pub fn parse(value: &str) -> Option<Self> {
+        let value = value.trim();
+        if value.is_empty() {
+            return None;
+        }
+        Self::from_str(value).ok()
     }
+}
+
+pub fn supported_locales() -> Vec<String> {
+    Language::iter()
+        .map(|language| language.tag().to_string())
+        .collect()
+}
+
+pub fn language_from_tag(value: &str) -> String {
+    Language::parse(value)
+        .unwrap_or(Language::English)
+        .to_string()
+}
+
+pub fn tags(languages: &[Language]) -> Vec<String> {
+    languages
+        .iter()
+        .map(|language| language.tag().to_string())
+        .collect()
+}
+
+pub const BLOCK_TAG_INSTRUCTIONS: &str = "The input uses numbered tags like [1], [2], etc. to mark each text block. Translate only the text after each tag. Keep every tag exactly unchanged, including numbers and order. Output the same tags followed by the translated text. Do not merge, split, or reorder blocks.";
+
+pub fn system_prompt(target_language: Language) -> String {
+    format!(
+        "You are a professional manga translator. Translate manga dialogue into natural {} that fits inside speech bubbles. Preserve character voice, emotional tone, relationship nuance, emphasis, and sound effects naturally. Keep the wording concise. Do not add notes, explanations, or romanization. {BLOCK_TAG_INSTRUCTIONS}",
+        target_language
+    )
 }
 
 #[derive(
@@ -270,10 +569,6 @@ impl ModelId {
         self.get_str(name).expect("missing model property")
     }
 
-    pub async fn get(&self) -> anyhow::Result<PathBuf> {
-        crate::ml::loading::hf_download(self.property("repo"), self.property("filename")).await
-    }
-
     pub fn default_generate_options(&self) -> GenerateOptions {
         match self {
             // LFM2.5: temp=0.1, top_k=50, repeat=1.05
@@ -343,14 +638,5 @@ impl ModelId {
 }
 
 pub async fn prefetch() -> anyhow::Result<()> {
-    use futures::stream::{self, StreamExt, TryStreamExt};
-
-    stream::iter(ModelId::iter())
-        .map(|model| {
-            async move { model.get().await }
-        })
-        .buffer_unordered(num_cpus::get())
-        .try_collect::<Vec<_>>()
-        .await?;
     Ok(())
 }

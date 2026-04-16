@@ -19,12 +19,32 @@ pub struct ChatCompletionsRequest {
     pub user_prompt: String,
     pub temperature: Option<f64>,
     pub max_tokens: Option<u32>,
+    pub image_base64: Option<String>,
+}
+
+#[derive(Serialize)]
+#[serde(untagged)]
+enum ChatMessageContent {
+    Text(String),
+    Multimodal(Vec<MultimodalContent>),
+}
+
+#[derive(Serialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+enum MultimodalContent {
+    Text { text: String },
+    ImageUrl { image_url: ImageUrl },
+}
+
+#[derive(Serialize)]
+struct ImageUrl {
+    url: String,
 }
 
 #[derive(Serialize)]
 struct ChatMessage {
     role: &'static str,
-    content: String,
+    content: ChatMessageContent,
 }
 
 #[derive(Serialize)]
@@ -41,16 +61,31 @@ pub async fn send_chat_completion(
     http_client: Arc<ClientWithMiddleware>,
     request: ChatCompletionsRequest,
 ) -> anyhow::Result<String> {
+    let user_content = if let Some(image_b64) = request.image_base64 {
+        ChatMessageContent::Multimodal(vec![
+            MultimodalContent::ImageUrl {
+                image_url: ImageUrl {
+                    url: format!("data:image/png;base64,{}", image_b64),
+                },
+            },
+            MultimodalContent::Text {
+                text: request.user_prompt,
+            },
+        ])
+    } else {
+        ChatMessageContent::Text(request.user_prompt)
+    };
+
     let body = ChatRequest {
         model: &request.model,
         messages: vec![
             ChatMessage {
                 role: "system",
-                content: request.system_prompt,
+                content: ChatMessageContent::Text(request.system_prompt),
             },
             ChatMessage {
                 role: "user",
-                content: request.user_prompt,
+                content: user_content,
             },
         ],
         temperature: request.temperature,

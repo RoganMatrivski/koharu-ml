@@ -8,7 +8,7 @@ use keyring::Entry;
 use reqwest_middleware::ClientWithMiddleware;
 
 use crate::llm::Language;
-use crate::llm::prompt::{BLOCK_TAG_INSTRUCTIONS, system_prompt};
+use crate::llm::{BLOCK_TAG_INSTRUCTIONS, system_prompt};
 
 /// Resolve the effective system prompt: custom (with block instructions appended) or default.
 pub(crate) fn resolve_system_prompt(custom: Option<&str>, target_language: Language) -> String {
