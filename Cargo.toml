@@ -1,0 +1,70 @@
+[package]
+name = "test-koharu-ml"
+version = "0.1.0"
+authors = ["Robin Mauritz <robinmauritzrm@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[target.'cfg(target_env = "musl")'.dependencies]
+mimalloc = "^0.1.48"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+color-eyre = { version = "0.6.3", features = ["capture-spantrace"] }
+tracing = "0.1.41"
+tracing-error = "0.2.1"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "fmt", "registry"] }
+
+# Framework dependencies
+anyhow = "1.0"
+async-trait = "0.1"
+blake3 = "1.8"
+candle-core = "=0.9.2"
+candle-nn = "=0.9.2"
+candle-transformers = "=0.9.2"
+dirs = "6.0"
+encoding_rs = "0.8"
+enumflags2 = "0.7.12"
+flate2 = "1.0"
+futures = "0.3"
+hf-hub = "0.5"
+image = "0.25"
+imageproc = "0.26"
+keyring = "3.6"
+libloading = "0.8.9"
+minijinja = "2.19"
+minijinja-contrib = { version = "2.19", features = ["pycompat"] }
+num_cpus = "1.17"
+rayon = "1.11"
+reqwest = { version = "0.13", features = ["stream", "json", "form", "blocking"] }
+reqwest-middleware = "0.5"
+rustfft = "6.4"
+schemars = { version = "1.2", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_bytes = "0.11"
+serde_json = "1.0"
+strum = { version = "0.28", features = ["derive"] }
+thiserror = "2.0"
+tokio = { version = "1.51", features = ["full"] }
+tokenizers = { version = "0.22", default-features = false, features = ["onig"] }
+url = { version = "2.5", features = ["serde"] }
+utoipa = "5"
+uuid = { version = "1.18", features = ["v4", "serde"] }
+zip = "8.5"
+inventory = "0.3"
+
+[patch.crates-io]
+candle-transformers = { git = "https://github.com/mayocream/candle", branch = "cuda-dynamic-loading" }
+candle-core = { git = "https://github.com/mayocream/candle", branch = "cuda-dynamic-loading" }
+candle-nn = { git = "https://github.com/mayocream/candle", branch = "cuda-dynamic-loading" }
+ug = { git = "https://github.com/mayocream/ug", branch = "cuda-dynamic-loading" }
+ug-cuda = { git = "https://github.com/mayocream/ug", branch = "cuda-dynamic-loading" }
+
+[profile.dev.package.image]
+opt-level = 3
+
+[profile.dev.package.imageproc]
+opt-level = 3
+
+[profile.dev.package.backtrace]
+opt-level = 3

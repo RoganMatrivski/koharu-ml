@@ -1,0 +1,3 @@
+[submodule "ext_lib/koharu"]
+	path = ext_lib/koharu
+	url = https://github.com/mayocream/koharu
