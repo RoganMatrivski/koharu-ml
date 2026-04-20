@@ -17,6 +17,7 @@ pub(crate) struct PPDocLayoutV3Outputs {
 }
 
 #[derive(Debug, Clone, Copy)]
+#[allow(dead_code)]
 enum ActivationKind {
     Identity,
     Relu,
@@ -288,6 +289,7 @@ impl Module for HGNetV2ConvLayerLight {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 enum HGNetV2BasicOp {
     Standard(HGNetV2ConvLayer),
     Light(HGNetV2ConvLayerLight),
@@ -1135,6 +1137,7 @@ impl PPDocLayoutV3ConvLayer {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 enum ScaleHeadLayer {
     Conv(PPDocLayoutV3ConvLayer),
     UpsampleBilinear2x,

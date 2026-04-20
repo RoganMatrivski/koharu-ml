@@ -26,6 +26,7 @@ const CONFIG_FILENAME: &str = "config.json";
 const SAFETENSORS_FILENAME: &str = "model.safetensors";
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct SpeechBubbleSegmentation {
     model: YoloV8Seg,
     config: SpeechBubbleSegmentationConfig,
@@ -33,6 +34,7 @@ pub struct SpeechBubbleSegmentation {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct PreparedInput {
     pixel_values: Tensor,
     original_width: u32,
@@ -45,6 +47,7 @@ struct PreparedInput {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct SpeechBubbleSegmentationResult {
     pub image_width: u32,
     pub image_height: u32,
@@ -54,6 +57,7 @@ pub struct SpeechBubbleSegmentationResult {
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
 pub struct SpeechBubbleRegion {
     pub label_id: usize,
     pub label: String,
@@ -63,6 +67,7 @@ pub struct SpeechBubbleRegion {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct RawSpeechBubbleRegion {
     label_id: usize,
     label: String,
@@ -72,6 +77,7 @@ struct RawSpeechBubbleRegion {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
 struct SpeechBubbleSegmentationConfig {
     model_type: String,
     variant: String,

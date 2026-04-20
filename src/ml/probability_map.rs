@@ -2,6 +2,7 @@ use anyhow::{Context, Result};
 use image::GrayImage;
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ProbabilityMap {
     pub width: u32,
     pub height: u32,

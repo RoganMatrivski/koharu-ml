@@ -67,6 +67,7 @@ pub struct PaddleOcrVlOutput {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
 pub struct PaddleOcrVlPreprocessorConfig {
     #[serde(default = "default_true")]
     pub do_convert_rgb: bool,
@@ -143,6 +144,7 @@ struct ModelFiles {
     weights: PathBuf,
 }
 
+#[allow(dead_code)]
 struct PreparedImage {
     pixel_values: Tensor,
     grid_thw: Tensor,
@@ -151,6 +153,7 @@ struct PreparedImage {
     num_image_tokens: usize,
 }
 
+#[allow(dead_code)]
 struct BatchGroup {
     indices: Vec<usize>,
     bucket_width: u32,

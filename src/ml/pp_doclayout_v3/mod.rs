@@ -70,6 +70,7 @@ impl PPDocLayoutV3 {
         self.inference_impl(images, threshold, true)
     }
 
+    #[allow(dead_code)]
     pub fn inference_fast(
         &self,
         images: &[DynamicImage],
@@ -140,6 +141,7 @@ impl PPDocLayoutV3 {
             .ok_or_else(|| anyhow::anyhow!("missing layout result"))
     }
 
+    #[allow(dead_code)]
     pub fn inference_one_fast(
         &self,
         image: &DynamicImage,
@@ -172,6 +174,7 @@ pub struct LayoutRegion {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
 pub(crate) struct HGNetV2Config {
     #[serde(default = "default_num_channels")]
     pub num_channels: usize,
@@ -224,8 +227,8 @@ impl Default for HGNetV2Config {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
 pub(crate) struct PPDocLayoutV3Config {
     #[serde(default = "default_activation_dropout")]
     pub activation_dropout: f64,
@@ -325,6 +328,7 @@ impl PPDocLayoutV3Config {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
 pub(crate) struct PPDocLayoutV3PreprocessorConfig {
     #[serde(default = "default_true")]
     pub do_resize: bool,
